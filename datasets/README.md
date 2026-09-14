@@ -58,7 +58,7 @@ label, difficulty_level
 | Normal | normal | Legitimate traffic |
 | DoS | back, land, neptune, pod, smurf, teardrop, apache2, udpstorm, processtable, mailbomb | Denial of Service |
 | Probe | ipsweep, nmap, portsweep, satan, mscan, saint | Surveillance/Scanning |
-| R2L | ftp_write, guess_passwd, imap, multihop, phf, spy, warezclient, warezmaster, snmpgetattack, named, xlock, xsnoop, sendmail, httptunnel | Remote to Local |
+| R2L | ftp_write, guess_passwd, imap, multihop, phf, spy, warezclient, warezmaster, snmpgetattack, named, xlock, xsnoop, sendmail, httptunnel, snmpguess, worm | Remote to Local |
 | U2R | buffer_overflow, loadmodule, perl, rootkit, sqlattack, xterm, ps | User to Root |
 
 ---

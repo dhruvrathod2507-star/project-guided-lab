@@ -25,17 +25,21 @@ plt.rcParams['font.size'] = 12
 
 
 def load_cleaned_data():
-    """Load the cleaned data from Phase 1."""
-    parquet_path = '../phase-1-data-engineering/data/features/train_features.parquet'
+    """
+    Load the cleaned (pre-encoded) data from Phase 1.
+
+    IMPORTANT: We load the CSV (pre-encoding), NOT the Parquet (post-encoding).
+    The Parquet file has categorical columns label-encoded to integers
+    (e.g., protocol_type: tcp=2, udp=1, icmp=0) which makes categorical
+    analysis like "What percentage uses TCP vs UDP?" impossible to interpret.
+    """
     csv_path = '../phase-1-data-engineering/data/processed/train_clean.csv'
 
-    if os.path.exists(parquet_path):
-        return pd.read_parquet(parquet_path)
-    elif os.path.exists(csv_path):
+    if os.path.exists(csv_path):
         return pd.read_csv(csv_path)
     else:
         raise FileNotFoundError(
-            "No cleaned data found. Complete Phase 1 first."
+            "No cleaned data found at '{}'. Complete Phase 1 first.".format(csv_path)
         )
 
 

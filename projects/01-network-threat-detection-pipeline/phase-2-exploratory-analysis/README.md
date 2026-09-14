@@ -37,10 +37,12 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 
-# Load the cleaned data from Phase 1
-df = pd.read_parquet('../phase-1-data-engineering/data/features/train_features.parquet')
-# OR load from CSV:
-# df = pd.read_csv('../phase-1-data-engineering/data/processed/train_clean.csv')
+# Load the CLEANED (pre-encoded) data from Phase 1
+# IMPORTANT: Use the CSV, NOT the Parquet — the Parquet has label-encoded
+# categorical columns (protocol_type becomes 0/1/2 instead of tcp/udp/icmp)
+# which makes categorical analysis meaningless.
+df = pd.read_csv('../phase-1-data-engineering/data/processed/train_clean.csv')
+# NOTE: Do NOT use train_features.parquet for EDA — that file has encoded values
 
 print(f"Dataset shape: {df.shape}")
 df.head()

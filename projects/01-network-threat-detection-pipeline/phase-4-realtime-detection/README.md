@@ -45,8 +45,10 @@ phase-4-realtime-detection/
 └── config.py              <- Configuration settings
 ```
 
+Starter code files are provided in `src/` — open them and implement the TODO sections.
+
 ```bash
-mkdir -p src logs
+mkdir -p logs
 ```
 
 ### Step 2: Configuration (`config.py`)
@@ -81,298 +83,87 @@ ALERT_LOG = os.path.join(LOG_DIR, 'alerts.log')
 
 **TODO:** Simulate incoming network connections by streaming from the test dataset.
 
+Open the provided `src/simulator.py` starter code and implement the TODO functions.
+
+**Key design decision:** Instead of re-processing raw `KDDTest+.txt` (which would require
+saving and reloading LabelEncoders from Phase 1), the simulator loads the **already-processed
+Parquet file** from Phase 1. This avoids encoder mismatch issues where test data gets different
+integer encodings than training data.
+
+**New concept — Python Generators:**
+
+The `stream_connections()` function uses `yield` instead of `return`. This makes it a
+*generator* — a function that produces values one at a time instead of all at once.
+
 ```python
-"""
-Network Traffic Simulator
-=========================
-Reads the test dataset and yields records one-by-one (or in batches)
-to simulate real-time network traffic arriving at the detector.
+# Normal function — returns everything at once (uses lots of memory)
+def get_all():
+    return [1, 2, 3, 4, 5]
 
-YOUR TASKS:
-1. Implement load_test_data() to load and preprocess the test set
-2. Implement stream_connections() as a generator that yields batches
-3. Add random delays to simulate realistic traffic patterns
-"""
+# Generator — produces one value at a time (memory efficient)
+def stream():
+    for i in [1, 2, 3, 4, 5]:
+        yield i  # pauses here, resumes on next call
 
-import pandas as pd
-import numpy as np
-import time
-
-
-def load_test_data(filepath):
-    """
-    Load and preprocess the test dataset.
-
-    This must apply the SAME preprocessing as Phase 1:
-    - Load with correct column names
-    - Clean the data
-    - Engineer features
-    - Return the preprocessed DataFrame
-
-    IMPORTANT: The test data must be transformed identically to training data.
-    If you used LabelEncoder in Phase 1, use the SAME encoder here.
-
-    Returns:
-        tuple: (X_features DataFrame, y_true labels, raw_df for display)
-    """
-    # TODO: Implement
-    pass
-
-
-def stream_connections(X, y, batch_size=10, delay=1.0):
-    """
-    Generator that yields batches of connections, simulating real-time traffic.
-
-    This is a Python generator (uses 'yield' instead of 'return').
-    Each call to next() gives the next batch of connections.
-
-    Steps:
-    1. Iterate through the dataset in chunks of batch_size
-    2. For each chunk, yield (X_batch, y_true_batch, batch_index)
-    3. Sleep for 'delay' seconds between batches (simulates real-time)
-    4. Print a status update every 10 batches
-
-    Yields:
-        tuple: (X_batch, y_true_batch, batch_number)
-    """
-    # TODO: Implement
-    pass
+# Usage:
+for value in stream():
+    print(value)  # prints 1, then 2, then 3...
 ```
+
+This is essential for real-time systems — you can't load millions of network packets into
+memory at once. Generators let you process them one batch at a time.
+
+> New to generators? Read the [Python docs on generators](https://docs.python.org/3/howto/functional.html#generators).
 
 ### Step 4: Threat Detector (`src/detector.py`)
 
-**TODO:** Load the trained model and classify connections.
+**TODO:** Open the provided `src/detector.py` and implement the TODO functions.
 
-```python
-"""
-Threat Detector
-===============
-Loads the trained ML model and classifies network connections.
-
-YOUR TASKS:
-1. Implement load_model() to load the saved joblib model
-2. Implement classify() to predict on a batch of connections
-3. Implement get_threat_level() to categorize the severity
-"""
-
-import joblib
-import numpy as np
-
-
-def load_model(model_path):
-    """
-    Load the trained model from disk.
-
-    Steps:
-    1. Use joblib.load() to load the model
-    2. Print model type and configuration
-    3. Return the model
-
-    Returns:
-        trained sklearn model
-    """
-    # TODO: Implement
-    pass
-
-
-def classify(model, X_batch):
-    """
-    Classify a batch of network connections.
-
-    Steps:
-    1. Use model.predict() to get class labels (0 or 1)
-    2. Use model.predict_proba() to get confidence scores
-    3. Return both predictions and probabilities
-
-    Returns:
-        tuple: (predictions array, probabilities array)
-    """
-    # TODO: Implement
-    pass
-
-
-def get_threat_level(probability):
-    """
-    Map prediction probability to a human-readable threat level.
-
-    Levels:
-    - probability < 0.3:  "LOW"    (likely normal)
-    - probability < 0.6:  "MEDIUM" (suspicious)
-    - probability < 0.85: "HIGH"   (likely attack)
-    - probability >= 0.85: "CRITICAL" (almost certain attack)
-
-    Returns:
-        str: threat level
-    """
-    # TODO: Implement
-    pass
-```
+Key functions to implement:
+- `load_model(model_path)` — Load the trained model using `joblib.load()`
+- `classify(model, X_batch)` — Run `model.predict()` and `model.predict_proba()`
+- `get_threat_level(probability)` — Map probability to LOW/MEDIUM/HIGH/CRITICAL
 
 ### Step 5: Alert System (`src/alerter.py`)
 
-**TODO:** Generate and log alerts for detected threats.
+**TODO:** Open the provided `src/alerter.py` and implement the TODO methods.
 
-```python
-"""
-Alert System
-============
-Generates alerts when threats are detected and logs them.
-
-YOUR TASKS:
-1. Implement format_alert() to create a structured alert message
-2. Implement log_alert() to write alerts to a log file
-3. Implement print_alert() for console output with color coding
-4. Implement AlertManager class to track alert statistics
-"""
-
-import json
-import os
-from datetime import datetime
-
-
-class AlertManager:
-    """
-    Manages threat alerts — formats, logs, and tracks statistics.
-
-    TODO: Implement all methods below.
-    """
-
-    def __init__(self, log_dir='logs'):
-        """
-        Initialize the alert manager.
-
-        Create:
-        - self.alerts: list to store all alerts
-        - self.stats: dict to count alerts by threat level
-        - self.log_file: path to the alert log file
-        """
-        # TODO: Implement
-        pass
-
-    def create_alert(self, batch_num, connection_index, prediction, probability, threat_level):
-        """
-        Create a structured alert dictionary.
-
-        Alert should include:
-        - timestamp (current datetime as ISO string)
-        - alert_id (auto-incrementing)
-        - batch_number
-        - connection_index
-        - prediction (0 or 1)
-        - probability (float)
-        - threat_level (LOW/MEDIUM/HIGH/CRITICAL)
-
-        Returns:
-            dict: structured alert
-        """
-        # TODO: Implement
-        pass
-
-    def log_alert(self, alert):
-        """
-        Write alert to the log file as a JSON line.
-
-        Each alert is one line of JSON in the log file.
-        This format (JSON Lines) is easy to parse programmatically.
-        """
-        # TODO: Implement
-        pass
-
-    def print_alert(self, alert):
-        """
-        Print alert to console with color-coded threat level.
-
-        Colors (ANSI codes):
-        - LOW:      green  (\\033[92m)
-        - MEDIUM:   yellow (\\033[93m)
-        - HIGH:     red    (\\033[91m)
-        - CRITICAL: red bold (\\033[1;91m)
-        - Reset:    \\033[0m
-
-        Format:
-        [TIMESTAMP] [THREAT_LEVEL] Alert #ID — Connection #INDEX flagged
-        (probability: X.XX%)
-        """
-        # TODO: Implement
-        pass
-
-    def get_summary(self):
-        """
-        Return a summary of all alerts generated.
-
-        Returns:
-            dict: {total_alerts, alerts_by_level, detection_rate}
-        """
-        # TODO: Implement
-        pass
-```
+Key class to implement: `AlertManager` with methods:
+- `create_alert()` — Create a structured alert dict with timestamp, ID, threat level
+- `log_alert()` — Write alert as JSON line to the log file
+- `print_alert()` — Print color-coded alert to console (uses ANSI color codes)
+- `get_summary()` — Return alert statistics
 
 ### Step 6: Main Monitor Loop (`src/monitor.py`)
 
-**TODO:** Tie everything together into a running detection system.
+**TODO:** Open the provided `src/monitor.py` and implement the `run_monitor()` function.
 
-```python
-"""
-Real-Time Monitor
-=================
-Main loop that simulates, detects, and alerts.
+This ties everything together:
+1. Load the trained model
+2. Load and preprocess test data
+3. Initialize the AlertManager
+4. Loop through batches from the stream:
+   - Classify each connection
+   - Only raise an alert if the attack probability exceeds `ALERT_THRESHOLD` (from config)
+   - Log and print alerts for detected threats
+5. Print final statistics
 
-YOUR TASKS:
-1. Initialize all components (simulator, detector, alerter)
-2. Run the detection loop
-3. Print real-time statistics
-4. Generate a final report
-"""
-
-import sys
-import os
-sys.path.insert(0, os.path.dirname(__file__))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
-from simulator import load_test_data, stream_connections
-from detector import load_model, classify, get_threat_level
-from alerter import AlertManager
-from config import MODEL_PATH, TEST_DATA_PATH, BATCH_SIZE, TICK_INTERVAL
-
-
-def run_monitor(max_batches=100):
-    """
-    Run the real-time threat detection monitor.
-
-    Steps:
-    1. Load the trained model
-    2. Load and preprocess test data
-    3. Initialize the AlertManager
-    4. For each batch from the stream:
-       a. Classify all connections in the batch
-       b. For each connection predicted as attack:
-          - Get the threat level
-          - Create and log an alert
-       c. Print batch summary (connections processed, threats found)
-    5. After all batches, print final statistics
-
-    Expected console output:
-    ─────────────────────────────────────────
-     REAL-TIME NETWORK THREAT MONITOR
-     Press Ctrl+C to stop
-    ─────────────────────────────────────────
-    [Batch 001] Processed 10 connections | Threats: 3 | Normal: 7
-    [Batch 002] Processed 10 connections | Threats: 5 | Normal: 5
-    ...
-    ─────────────────────────────────────────
-     FINAL REPORT
-     Total connections analyzed: 1000
-     Threats detected: 423 (42.3%)
-     Alerts by level: CRITICAL: 89, HIGH: 134, MEDIUM: 112, LOW: 88
-     True detection rate: 94.2% (compared to actual labels)
-    ─────────────────────────────────────────
-    """
-    # TODO: Implement
-    pass
-
-
-if __name__ == '__main__':
-    run_monitor()
+**Expected output:**
+```
+─────────────────────────────────────────
+ REAL-TIME NETWORK THREAT MONITOR
+ Press Ctrl+C to stop
+─────────────────────────────────────────
+[Batch 001] Processed 10 connections | Threats: 3 | Normal: 7
+[Batch 002] Processed 10 connections | Threats: 5 | Normal: 5
+...
+─────────────────────────────────────────
+ FINAL REPORT
+ Total connections analyzed: 1000
+ Threats detected: 423 (42.3%)
+ Alerts by level: CRITICAL: 89, HIGH: 134, MEDIUM: 112, LOW: 88
+ True detection rate: 94.2% (compared to actual labels)
+─────────────────────────────────────────
 ```
 
 ---

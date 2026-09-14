@@ -20,9 +20,9 @@ env/
 *.parquet
 *.db
 *.sqlite
-*.txt
-!requirements.txt
-!README.txt
+
+# Dataset text files are caught by **/data/raw/ below
+# Note: *.txt is NOT globally ignored so students can create helper text files
 
 # OS files
 .DS_Store

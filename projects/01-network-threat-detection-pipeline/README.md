@@ -115,7 +115,7 @@ Train machine learning models to classify network traffic as normal or malicious
 - Hyperparameter tuning
 - Model serialization (save/load trained models)
 
-### [Phase 4: Real-Time Detection](phase-4-realtime-detection/) (Week 5-6)
+### [Phase 4: Real-Time Detection](phase-4-realtime-detection/) (Week 6-7)
 Simulate real-time network traffic and classify it using your trained model.
 
 **You will build:**
@@ -149,6 +149,7 @@ Visualize threats and generate security reports on an interactive dashboard.
 | SQLite3 | built-in | Database | Comes with Python |
 | Jupyter | latest | Interactive notebooks | `pip install jupyter` |
 | Joblib | latest | Model serialization | Comes with scikit-learn |
+| PyArrow | 13.0+ | Parquet file support | `pip install pyarrow` |
 
 ---
 
@@ -182,7 +183,7 @@ After completing all phases, verify:
 ## Getting Help
 
 - Read the phase-specific READMEs — they contain detailed instructions
-- Check the `hints/` section in each phase if you're stuck
+- Look for the **Hints** section (expandable `<details>` blocks) at the bottom of each phase README
 - Google error messages — debugging is a core engineering skill
 - Ask your instructor during lab sessions
 

@@ -10,7 +10,7 @@
 - How to load and inspect raw data files
 - Data cleaning techniques (missing values, duplicates, type casting)
 - Feature engineering for network security data
-- Encoding categorical variables (Label Encoding, One-Hot Encoding)
+- Encoding categorical variables (Label Encoding)
 - Data storage formats (CSV, Parquet, SQLite)
 - Building reusable data pipelines
 
@@ -80,7 +80,7 @@ Your task is to clean the raw data. Implement these cleaning steps:
 2. Check for and remove duplicate rows
 3. Fix data types (numeric columns should be int/float, categorical should be string)
 4. Remove the `difficulty_level` column (not needed for our model)
-5. Map the 39 specific attack types to their 5 categories (Normal, DoS, Probe, R2L, U2R)
+5. Map the specific attack types to their 5 categories (Normal, DoS, Probe, R2L, U2R)
 6. Create a binary label column: `is_attack` (0 = normal, 1 = attack)
 
 **Attack type mapping:**
@@ -104,6 +104,9 @@ ATTACK_CATEGORY_MAP = {
 
     'buffer_overflow': 'U2R', 'loadmodule': 'U2R', 'perl': 'U2R',
     'rootkit': 'U2R', 'sqlattack': 'U2R', 'xterm': 'U2R', 'ps': 'U2R',
+
+    # Additional types found in KDDTest+ (not in KDDTrain+)
+    'snmpguess': 'R2L', 'worm': 'R2L',
 }
 ```
 
@@ -111,7 +114,7 @@ ATTACK_CATEGORY_MAP = {
 ```
 Missing values: 0
 Duplicates removed: 0
-Columns after cleaning: 42
+Columns after cleaning: 44
 Attack categories: ['Normal', 'DoS', 'Probe', 'R2L', 'U2R']
 Binary labels — Normal: 67343, Attack: 58630
 ```
@@ -122,16 +125,22 @@ Transform raw features into ML-ready format.
 
 **TODO items:**
 1. **Label Encode** categorical columns: `protocol_type`, `service`, `flag`
-2. **Normalize** numeric columns to 0-1 range using Min-Max scaling
-3. **Create new features:**
+2. **Create new features** (BEFORE normalization, so they use raw-scale values):
    - `bytes_ratio` = `src_bytes / (dst_bytes + 1)` — ratio of sent vs received bytes
    - `error_rate` = `(serror_rate + rerror_rate) / 2` — combined error rate
-   - `is_privileged` = 1 if `root_shell == 1` or `su_attempted == 1`, else 0
-4. Save the feature-engineered data to `data/features/`
+   - `is_privileged` = 1 if `root_shell == 1` or `su_attempted >= 1`, else 0
+   - `traffic_intensity` = `count * srv_count` — measures connection busyness
+3. **Normalize** numeric columns to 0-1 range using Min-Max scaling (LAST step)
+4. **Save fitted encoders and scaler** using `joblib.dump()` to `data/features/` — Phase 4 needs these to transform new data identically
+5. Save the feature-engineered data to `data/features/`
+
+**IMPORTANT:** The order matters! Create derived features BEFORE normalizing.
+If you normalize first, `bytes_ratio` will be computed on [0,1] values instead of actual byte counts — producing meaningless results.
 
 **Key concepts to learn:**
 - `sklearn.preprocessing.LabelEncoder` — converting text to numbers
 - `sklearn.preprocessing.MinMaxScaler` — normalizing numeric ranges
+- `joblib.dump()` / `joblib.load()` — saving and reloading fitted transformers
 - Feature engineering — creating new meaningful features from existing ones
 
 ### Step 6: Data Storage (`src/store.py`)
@@ -182,7 +191,7 @@ Tie everything together into a single executable pipeline.
 [Pipeline] Starting ETL pipeline...
 [Step 1/4] Ingesting data... Done (1.2s) — 125973 rows loaded
 [Step 2/4] Cleaning data... Done (0.8s) — 125973 rows, 0 dropped
-[Step 3/4] Engineering features... Done (2.1s) — 45 features created
+[Step 3/4] Engineering features... Done (2.1s) — 46 features created
 [Step 4/4] Storing data... Done (3.4s)
   → CSV: data/processed/train_clean.csv
   → Parquet: data/features/train_features.parquet

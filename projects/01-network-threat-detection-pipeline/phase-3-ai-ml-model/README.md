@@ -39,21 +39,21 @@ In intrusion detection, not all errors are equal:
 ```
 phase-3-ai-ml-model/
 ├── src/
-│   ├── prepare_data.py    <- Split and prepare data for ML
-│   ├── train_models.py    <- Train multiple models
-│   ├── evaluate.py        <- Evaluate and compare models
-│   └── tune.py            <- Hyperparameter tuning
+│   └── train_models.py    <- All ML code: prepare, train, evaluate, tune, save
 ├── models/                <- Saved trained models
 ├── results/               <- Evaluation reports and plots
 └── notebooks/
     └── 03_model_training.ipynb
 ```
 
+All functions are in a single `train_models.py` file (provided as starter code).
+As you become more comfortable, you can optionally refactor into separate files.
+
 ```bash
-mkdir -p src models results notebooks
+mkdir -p models results notebooks
 ```
 
-### Step 2: Prepare Data for ML (`src/prepare_data.py`)
+### Step 2: Prepare Data for ML (in `src/train_models.py`)
 
 **TODO:** Split data into features (X) and labels (y), then into train/test sets.
 
@@ -79,8 +79,9 @@ def prepare_data(df):
 ```
 
 **Key concept: Stratified Split**
-- Without stratification, rare attack types (U2R, R2L) might end up entirely in one split
-- `stratify=y` ensures both train and test have the same class ratio
+- `stratify=y` ensures both train and test have the same normal/attack ratio
+- Since `y` is the binary `is_attack` column, this balances the normal vs attack split
+- Note: This does not balance sub-categories (DoS, Probe, etc.) — for that you would need `stratify=df['attack_category']`
 
 ### Step 3: Train Multiple Models (`src/train_models.py`)
 
@@ -154,7 +155,7 @@ def train_random_forest(X_train, y_train):
     pass
 ```
 
-### Step 4: Evaluate Models (`src/evaluate.py`)
+### Step 4: Evaluate Models (in `src/train_models.py`)
 
 **TODO:** Compare all models using multiple metrics.
 
@@ -220,7 +221,7 @@ def compare_models(results_dict):
     pass
 ```
 
-### Step 5: Feature Importance (`src/evaluate.py`)
+### Step 5: Feature Importance (in `src/train_models.py`)
 
 **TODO:** Find which features matter most for detection.
 
@@ -244,9 +245,15 @@ def plot_feature_importance(model, feature_names, top_n=20):
     pass
 ```
 
-### Step 6: Hyperparameter Tuning (`src/tune.py`)
+### Step 6: Hyperparameter Tuning (in `src/train_models.py`)
 
 **TODO:** Optimize the best model's parameters.
+
+> **Performance Warning:** GridSearchCV with the full parameter grid below trains
+> 3 x 4 x 3 = 36 combinations x 5 folds = **180 Random Forest models**. On a typical
+> student laptop (8GB RAM), this can take **15-30+ minutes**. If it's too slow:
+> - Reduce the grid: `n_estimators: [50, 100]`, `max_depth: [10, 15]`
+> - Or use `RandomizedSearchCV` instead (faster, samples random combinations)
 
 ```python
 from sklearn.model_selection import GridSearchCV
@@ -269,8 +276,6 @@ def tune_random_forest(X_train, y_train):
     3. Fit on training data
     4. Print best parameters and best score
     5. Return the best model
-
-    Note: This will take several minutes to run. That's normal.
     """
     # TODO: Implement
     pass

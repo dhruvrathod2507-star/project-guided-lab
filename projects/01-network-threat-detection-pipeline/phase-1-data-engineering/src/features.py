@@ -6,14 +6,16 @@ and creation of new derived features.
 
 YOUR TASKS:
 1. Implement encode_categorical()
-2. Implement normalize_numeric()
-3. Implement create_derived_features()
+2. Implement create_derived_features()
+3. Implement normalize_numeric()
 4. Implement engineer_features() to chain all steps
+5. Save fitted encoders and scaler using joblib for reuse in Phase 4
 """
 
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
+import joblib
 
 CATEGORICAL_COLUMNS = ['protocol_type', 'service', 'flag']
 
@@ -122,10 +124,15 @@ def engineer_features(df):
 
     Steps:
     1. Encode categorical columns
-    2. Normalize numeric columns
-    3. Create derived features
-    4. Print final feature count
-    5. Return the feature-engineered DataFrame
+    2. Create derived features (BEFORE normalization, so they use raw-scale values)
+    3. Normalize numeric columns (LAST — so all features including derived ones are scaled)
+    4. Save fitted encoders and scaler to disk using joblib (for reuse in Phase 4)
+    5. Print final feature count
+    6. Return the feature-engineered DataFrame
+
+    IMPORTANT: Derived features must be created BEFORE normalization.
+    If you normalize first, bytes_ratio = normalized_src / (normalized_dst + 1)
+    produces meaningless values. Always: encode → derive → normalize.
 
     Args:
         df (pd.DataFrame): Cleaned DataFrame from Phase 1
@@ -135,7 +142,13 @@ def engineer_features(df):
     """
     print("\n--- Feature Engineering Pipeline ---")
 
-    # TODO: Implement this function by calling the functions above
+    # TODO: Implement this function by calling the functions above in this order:
+    # 1. encode_categorical(df)
+    # 2. create_derived_features(df)
+    # 3. normalize_numeric(df)
+    # 4. Save encoders and scaler using joblib:
+    #    joblib.dump(encoders, 'data/features/label_encoders.joblib')
+    #    joblib.dump(scaler, 'data/features/scaler.joblib')
     pass
 
 

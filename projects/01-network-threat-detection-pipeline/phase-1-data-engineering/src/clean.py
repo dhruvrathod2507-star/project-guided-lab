@@ -36,6 +36,9 @@ ATTACK_CATEGORY_MAP = {
     # U2R — User to Root attacks
     'buffer_overflow': 'U2R', 'loadmodule': 'U2R', 'perl': 'U2R',
     'rootkit': 'U2R', 'sqlattack': 'U2R', 'xterm': 'U2R', 'ps': 'U2R',
+
+    # Additional attack types found in KDDTest+ (not in KDDTrain+)
+    'snmpguess': 'R2L', 'worm': 'R2L',
 }
 
 

@@ -4,7 +4,7 @@ Data Ingestion Module
 Loads raw NSL-KDD network traffic data from text files into Pandas DataFrames.
 
 YOUR TASKS:
-1. Complete the COLUMN_NAMES list with all 43 column names
+1. Review the COLUMN_NAMES list — verify it has all 43 column names matching the dataset
 2. Implement the load_data() function
 3. Implement the validate_data() function
 """
