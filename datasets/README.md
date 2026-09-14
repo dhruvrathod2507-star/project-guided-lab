@@ -16,22 +16,33 @@ The NSL-KDD dataset is an improved version of the original KDD Cup 1999 dataset.
 - Well-documented with labeled attack types
 - Industry-standard benchmark
 
-**Download:**
+**Download (Method 1 — Recommended):**
 
-1. Go to the [UNB Canadian Institute for Cybersecurity](https://www.unb.ca/cic/datasets/nsl.html)
-2. Download the following files:
-   - `KDDTrain+.txt` — Training set (125,973 records)
-   - `KDDTest+.txt` — Test set (22,544 records)
-   - `KDDTrain+_20Percent.txt` — 20% subset for quick experiments
-   - `KDDTest-21.txt` — Test set without difficulty level
-
-**Alternative direct download (if UNB site is slow):**
+Download directly from the [GitHub mirror](https://github.com/Jehuty4949/NSL_KDD) (verified working, 214+ stars):
 
 ```bash
-# From the official mirror
-wget https://raw.githubusercontent.com/defcom17/NSL_KDD/master/KDDTrain%2B.txt
-wget https://raw.githubusercontent.com/defcom17/NSL_KDD/master/KDDTest%2B.txt
+# Download training set (125,973 records)
+wget https://raw.githubusercontent.com/Jehuty4949/NSL_KDD/master/KDDTrain%2B.txt
+
+# Download test set (22,544 records)
+wget https://raw.githubusercontent.com/Jehuty4949/NSL_KDD/master/KDDTest%2B.txt
 ```
+
+Or if you don't have `wget`, use `curl`:
+
+```bash
+curl -O https://raw.githubusercontent.com/Jehuty4949/NSL_KDD/master/KDDTrain%2B.txt
+curl -O https://raw.githubusercontent.com/Jehuty4949/NSL_KDD/master/KDDTest%2B.txt
+```
+
+The GitHub mirror also has additional files: `KDDTrain+_20Percent.txt` (20% subset for quick experiments), `KDDTest-21.txt` (test set without difficulty level), and CSV versions.
+
+**Download (Method 2 — Original source, may be slow/unavailable):**
+
+1. Go to the [UNB Canadian Institute for Cybersecurity](https://www.unb.ca/cic/datasets/nsl.html)
+2. Download `KDDTrain+.txt` and `KDDTest+.txt`
+
+> **Note:** The UNB website can be intermittently unreachable. Use the GitHub mirror above if it's down.
 
 **Column Names (41 features + label + difficulty):**
 
@@ -67,11 +78,11 @@ label, difficulty_level
 
 For students who want a more modern and larger dataset.
 
-**Download:** [CICIDS2017 on UNB](https://www.unb.ca/cic/datasets/ids-2017.html)
+**Download:** [CICIDS2017 on UNB](https://www.unb.ca/cic/datasets/ids-2017.html) (may be slow/unavailable — search "CICIDS2017" on Kaggle as an alternative)
 
 - Contains 2.8M+ flow records
 - Covers modern attacks: Brute Force, DDoS, Web Attacks, Infiltration, Botnet
-- Captured over 5 days (Monday–Friday) with different attack scenarios each day
+- Captured over 5 days (Monday-Friday) with different attack scenarios each day
 - CSV files per day, ~1GB total
 
 ---
