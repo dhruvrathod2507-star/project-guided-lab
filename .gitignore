@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_metadata/
+
+# Data files (do not commit large datasets)
+*.csv
+*.parquet
+*.db
+*.sqlite
+*.txt
+!requirements.txt
+!README.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Model files
+*.joblib
+*.pkl
+*.h5
+
+# Logs
+logs/
+*.log
+
+# Phase output directories
+**/data/raw/
+**/data/processed/
+**/data/features/
+**/models/
+**/results/
+**/plots/
