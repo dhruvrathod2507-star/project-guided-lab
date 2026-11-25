@@ -16,10 +16,12 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 import joblib
+import os
 
 CATEGORICAL_COLUMNS = ['protocol_type', 'service', 'flag']
 
 NUMERIC_COLUMNS = [
+    
     'duration', 'src_bytes', 'dst_bytes', 'land', 'wrong_fragment',
     'urgent', 'hot', 'num_failed_logins', 'logged_in', 'num_compromised',
     'root_shell', 'su_attempted', 'num_root', 'num_file_creations',
@@ -31,126 +33,82 @@ NUMERIC_COLUMNS = [
     'dst_host_diff_srv_rate', 'dst_host_same_src_port_rate',
     'dst_host_srv_diff_host_rate', 'dst_host_serror_rate',
     'dst_host_srv_serror_rate', 'dst_host_rerror_rate',
-    'dst_host_srv_rerror_rate',
+    'dst_host_srv_rerror_rate',   
 ]
+DERIVED_COLUMNS = ['bytes_ratio', 'error_rate', 'is_privileged', 'traffic_intensity']
 
 
 def encode_categorical(df):
-    """
-    Convert categorical text columns to numeric using Label Encoding.
+    """Convert text columns to numbers with LabelEncoder."""
+    df = df.copy()
+    encoders = {}
 
-    The NSL-KDD dataset has 3 categorical columns:
-    - protocol_type: tcp, udp, icmp
-    - service: http, ftp, smtp, etc. (~70 unique values)
-    - flag: SF, S0, REJ, etc. (~11 unique values)
+    for col in CATEGORICAL_COLUMNS:
+        encoder = LabelEncoder()
+        df[col] = encoder.fit_transform(df[col])
+        encoders[col] = encoder
 
-    Steps:
-    1. For each column in CATEGORICAL_COLUMNS:
-       a. Create a LabelEncoder instance
-       b. Fit and transform the column
-       c. Print the mapping (original value -> encoded value)
-    2. Return the modified DataFrame and a dict of encoders (for later use)
+        mapping = {name: code for code, name in enumerate(encoder.classes_)}
+        if len(mapping) <= 15:
+            print(f"{col} mapping: {mapping}")
+        else:
+            print(f"{col}: {len(mapping)} unique values encoded")
 
-    Args:
-        df (pd.DataFrame): DataFrame with categorical columns
-
-    Returns:
-        tuple: (modified DataFrame, dict of {column_name: LabelEncoder})
-    """
-    # TODO: Implement this function
-    pass
-
-
-def normalize_numeric(df):
-    """
-    Normalize numeric features to the range [0, 1] using Min-Max scaling.
-
-    Why normalize?
-    - Features like 'src_bytes' can be in millions, while 'land' is 0 or 1
-    - ML algorithms perform better when features are on similar scales
-
-    Steps:
-    1. Create a MinMaxScaler instance
-    2. Fit and transform all NUMERIC_COLUMNS
-    3. Replace the original columns with normalized values
-    4. Return the modified DataFrame and the fitted scaler
-
-    Args:
-        df (pd.DataFrame): DataFrame with numeric columns
-
-    Returns:
-        tuple: (modified DataFrame, fitted MinMaxScaler)
-    """
-    # TODO: Implement this function
-    pass
+    return df, encoders
 
 
 def create_derived_features(df):
-    """
-    Create new features from existing ones that may help the ML model.
+    """Add 4 new features. Must run BEFORE normalization."""
+    df = df.copy()
 
-    New features to create:
-    1. bytes_ratio: src_bytes / (dst_bytes + 1)
-       - High ratio = sending much more than receiving (possible data exfiltration)
-       - Adding 1 to denominator avoids division by zero
+    df['bytes_ratio'] = df['src_bytes'] / (df['dst_bytes'] + 1)
+    df['error_rate'] = (df['serror_rate'] + df['rerror_rate']) / 2
+    df['is_privileged'] = (
+        (df['root_shell'] == 1) | (df['su_attempted'] >= 1)
+    ).astype(int)
+    df['traffic_intensity'] = df['count'] * df['srv_count']
 
-    2. error_rate: (serror_rate + rerror_rate) / 2
-       - Combined error rate — high values suggest scanning/probing activity
+    print("Derived feature summary:")
+    print(df[DERIVED_COLUMNS].describe().round(3).to_string())
+    return df
 
-    3. is_privileged: 1 if root_shell == 1 OR su_attempted >= 1, else 0
-       - Indicates privilege escalation attempts
 
-    4. traffic_intensity: count * srv_count
-       - Measures how busy this connection's host/service pair is
+def normalize_numeric(df):
+    """Scale numeric and derived columns into the range 0 to 1."""
+    df = df.copy()
+    columns = [c for c in NUMERIC_COLUMNS + DERIVED_COLUMNS if c in df.columns]
 
-    Steps:
-    1. Create each derived feature as a new column
-    2. Print summary statistics for the new features
-    3. Return the modified DataFrame
+    scaler = MinMaxScaler()
+    df[columns] = scaler.fit_transform(df[columns])
 
-    Args:
-        df (pd.DataFrame): Input DataFrame
-
-    Returns:
-        pd.DataFrame: DataFrame with new feature columns added
-    """
-    # TODO: Implement this function
-    pass
+    print(f"Normalized {len(columns)} columns to the 0-1 range")
+    return df, scaler
 
 
 def engineer_features(df):
-    """
-    Run the full feature engineering pipeline.
-
-    Steps:
-    1. Encode categorical columns
-    2. Create derived features (BEFORE normalization, so they use raw-scale values)
-    3. Normalize numeric columns (LAST — so all features including derived ones are scaled)
-    4. Save fitted encoders and scaler to disk using joblib (for reuse in Phase 4)
-    5. Print final feature count
-    6. Return the feature-engineered DataFrame
-
-    IMPORTANT: Derived features must be created BEFORE normalization.
-    If you normalize first, bytes_ratio = normalized_src / (normalized_dst + 1)
-    produces meaningless values. Always: encode → derive → normalize.
-
-    Args:
-        df (pd.DataFrame): Cleaned DataFrame from Phase 1
-
-    Returns:
-        pd.DataFrame: ML-ready DataFrame with all features engineered
-    """
+    """Full pipeline: encode -> derive -> normalize -> save."""
     print("\n--- Feature Engineering Pipeline ---")
 
-    # TODO: Implement this function by calling the functions above in this order:
-    # 1. encode_categorical(df)
-    # 2. create_derived_features(df)
-    # 3. normalize_numeric(df)
-    # 4. Save encoders and scaler using joblib:
-    #    joblib.dump(encoders, 'data/features/label_encoders.joblib')
-    #    joblib.dump(scaler, 'data/features/scaler.joblib')
-    pass
+    df, encoders = encode_categorical(df)
+    df = create_derived_features(df)
+    df, scaler = normalize_numeric(df)
 
+    os.makedirs('data/features', exist_ok=True)
+    joblib.dump(encoders, 'data/features/label_encoders.joblib')
+    joblib.dump(scaler, 'data/features/scaler.joblib')
+    print("Saved encoders and scaler to data/features/")
+
+    label_columns = ['label', 'attack_category', 'is_attack']
+    n_features = len([c for c in df.columns if c not in label_columns])
+    print(f"Feature columns: {n_features}")
+    return df
 
 if __name__ == '__main__':
-    print("Run this module through pipeline.py, or test individual functions.")
+    from ingest import load_data
+    from clean import clean_data
+
+    df = clean_data(load_data('data/raw/KDDTrain+.txt'))
+    features = engineer_features(df)
+
+    print(features.head())
+    print(features[NUMERIC_COLUMNS + DERIVED_COLUMNS].agg(['min', 'max']).T.head(8))
