@@ -43,115 +43,70 @@ ATTACK_CATEGORY_MAP = {
 
 
 def check_missing_values(df):
-    """
-    Check for missing values in each column.
+    """Count missing values per column and in total."""
+    missing = df.isnull().sum()
+    total = int(missing.sum())
 
-    Steps:
-    1. Use df.isnull().sum() to count missing values per column
-    2. Print columns that have missing values (if any)
-    3. Print total missing values
-    4. Return the count of total missing values
+    columns_with_missing = missing[missing > 0]
+    if total > 0:
+        print("Columns with missing values:")
+        print(columns_with_missing.to_string())
 
-    Args:
-        df (pd.DataFrame): Input DataFrame
-
-    Returns:
-        int: Total number of missing values
-    """
-    # TODO: Implement this function
-    pass
+    print(f"Missing values: {total}")
+    return total
 
 
 def remove_duplicates(df):
-    """
-    Remove duplicate rows from the DataFrame.
-
-    Steps:
-    1. Count duplicates using df.duplicated().sum()
-    2. Remove duplicates using df.drop_duplicates()
-    3. Print how many rows were removed
-    4. Return the cleaned DataFrame
-
-    Args:
-        df (pd.DataFrame): Input DataFrame
-
-    Returns:
-        pd.DataFrame: DataFrame with duplicates removed
-    """
-    # TODO: Implement this function
-    pass
+    """Drop duplicate rows and report how many were removed."""
+    duplicates = int(df.duplicated().sum())
+    df = df.drop_duplicates()
+    print(f"Duplicates removed: {duplicates}")
+    return df
 
 
 def map_attack_categories(df):
-    """
-    Map specific attack type labels to their broader categories.
+    """Group specific attack names into 5 categories."""
+    df = df.copy()
+    df['label'] = df['label'].str.strip().str.rstrip('.')
+    df['attack_category'] = df['label'].map(ATTACK_CATEGORY_MAP)
 
-    The 'label' column contains specific attack names (e.g., 'neptune', 'smurf').
-    Map these to categories: Normal, DoS, Probe, R2L, U2R.
+    unknown = df.loc[df['attack_category'].isnull(), 'label'].unique()
+    if len(unknown) > 0:
+        print(f"Unknown attack types: {list(unknown)}")
+    df['attack_category'] = df['attack_category'].fillna('Unknown')
 
-    Steps:
-    1. Strip any trailing '.' from the label column (some versions have this)
-    2. Use the ATTACK_CATEGORY_MAP dictionary to create a new 'attack_category' column
-    3. Handle unknown attack types by mapping them to 'Unknown'
-    4. Print the value counts of attack categories
-    5. Return the DataFrame with the new column
-
-    Args:
-        df (pd.DataFrame): Input DataFrame with 'label' column
-
-    Returns:
-        pd.DataFrame: DataFrame with new 'attack_category' column
-    """
-    # TODO: Implement this function
-    pass
+    print("Attack categories:")
+    print(df['attack_category'].value_counts().to_string())
+    return df
 
 
 def create_binary_label(df):
-    """
-    Create a binary classification label: normal (0) vs attack (1).
+    """Add is_attack: 0 = Normal, 1 = any attack."""
+    df = df.copy()
+    df['is_attack'] = (df['attack_category'] != 'Normal').astype(int)
 
-    Steps:
-    1. Create new column 'is_attack': 0 if attack_category == 'Normal', else 1
-    2. Print the distribution of binary labels
-    3. Return the DataFrame
-
-    Args:
-        df (pd.DataFrame): Input DataFrame with 'attack_category' column
-
-    Returns:
-        pd.DataFrame: DataFrame with new 'is_attack' column
-    """
-    # TODO: Implement this function
-    pass
+    counts = df['is_attack'].value_counts()
+    print(f"Binary labels - Normal: {counts.get(0, 0)}, Attack: {counts.get(1, 0)}")
+    return df
 
 
 def clean_data(df):
-    """
-    Run the full cleaning pipeline.
-
-    Chain all cleaning steps in order:
-    1. Check missing values
-    2. Remove duplicates
-    3. Drop the 'difficulty_level' column (not needed for modeling)
-    4. Map attack categories
-    5. Create binary label
-    6. Return the cleaned DataFrame
-
-    Args:
-        df (pd.DataFrame): Raw input DataFrame
-
-    Returns:
-        pd.DataFrame: Fully cleaned DataFrame
-    """
+    """Run the full cleaning pipeline."""
     print("\n--- Data Cleaning Pipeline ---")
 
-    # TODO: Implement this function by calling the functions above in order
-    pass
+    check_missing_values(df)
+    df = remove_duplicates(df)
+    df = df.drop(columns=['difficulty_level'])
+    df = map_attack_categories(df)
+    df = create_binary_label(df)
+
+    print(f"Columns after cleaning: {df.shape[1]}")
+    return df
 
 
 if __name__ == '__main__':
-    print("Run this module through pipeline.py, or test individual functions here.")
-    print("Example:")
-    print("  from ingest import load_data")
-    print("  df = load_data('data/raw/KDDTrain+.txt')")
-    print("  cleaned = clean_data(df)")
+    from ingest import load_data
+
+    df = load_data('data/raw/KDDTrain+.txt')
+    cleaned = clean_data(df)
+    print(cleaned[['label', 'attack_category', 'is_attack']].head())
