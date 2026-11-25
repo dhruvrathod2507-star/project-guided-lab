@@ -23,54 +23,53 @@ from store import store_data
 
 
 def run_pipeline(train_path, test_path=None):
-    """
-    Execute the full ETL pipeline.
-
-    Steps:
-    1. INGEST — Load raw data files
-    2. CLEAN — Handle missing values, duplicates, fix types, map labels
-    3. FEATURES — Encode, normalize, create derived features
-    4. STORE — Save to CSV, Parquet, and SQLite
-
-    For each step:
-    - Print the step name and number
-    - Record the start time
-    - Execute the step
-    - Print the elapsed time and a summary
-
-    Args:
-        train_path (str): Path to KDDTrain+.txt
-        test_path (str, optional): Path to KDDTest+.txt
-    """
+    """Execute the full ETL pipeline: ingest -> clean -> features -> store."""
     print("=" * 60)
     print("  NETWORK TRAFFIC ETL PIPELINE")
     print("=" * 60)
 
     pipeline_start = time.time()
 
-    # ── Step 1: Ingest ──────────────────────────────────────
-    # TODO: Load the training data using load_data()
-    # TODO: Validate it using validate_data()
-    # TODO: Print how many rows were loaded and how long it took
+    # Step 1: Ingest
+    print("\n[Step 1/4] Ingesting data...")
+    step_start = time.time()
+    raw_df = load_data(train_path)
+    if not validate_data(raw_df):
+        raise ValueError("Validation failed - check the raw data file")
+    print(f"[Step 1/4] Done ({time.time() - step_start:.1f}s) - {len(raw_df)} rows loaded")
 
-    # ── Step 2: Clean ───────────────────────────────────────
-    # TODO: Clean the data using clean_data()
-    # TODO: Print how many rows remain after cleaning
+    if test_path and os.path.exists(test_path):
+        test_df = load_data(test_path)
+        print(f"           Test file checked: {len(test_df)} rows (features are built in Phase 3)")
 
-    # ── Step 3: Feature Engineering ─────────────────────────
-    # TODO: Engineer features using engineer_features()
-    # TODO: Print the final number of columns/features
+    # Step 2: Clean
+    print("\n[Step 2/4] Cleaning data...")
+    step_start = time.time()
+    clean_df = clean_data(raw_df)
+    dropped = len(raw_df) - len(clean_df)
+    print(f"[Step 2/4] Done ({time.time() - step_start:.1f}s) - {len(clean_df)} rows, {dropped} dropped")
 
-    # ── Step 4: Store ───────────────────────────────────────
-    # TODO: Store the data using store_data()
-    # TODO: Print the paths to all saved files
+    # Step 3: Feature engineering
+    print("\n[Step 3/4] Engineering features...")
+    step_start = time.time()
+    features_df = engineer_features(clean_df)
+    label_columns = ['label', 'attack_category', 'is_attack']
+    n_features = len([c for c in features_df.columns if c not in label_columns])
+    print(f"[Step 3/4] Done ({time.time() - step_start:.1f}s) - {n_features} feature columns")
 
-    # ── Summary ─────────────────────────────────────────────
+    # Step 4: Store
+    print("\n[Step 4/4] Storing data...")
+    step_start = time.time()
+    paths = store_data(features_df, clean_df=clean_df)
+    print(f"[Step 4/4] Done ({time.time() - step_start:.1f}s)")
+    for name, path in paths.items():
+        print(f"  -> {name}: {path}")
+
+    # Summary
     total_time = time.time() - pipeline_start
     print("\n" + "=" * 60)
     print(f"  Pipeline complete! Total time: {total_time:.2f}s")
     print("=" * 60)
-
 
 if __name__ == '__main__':
     train_file = os.path.join('data', 'raw', 'KDDTrain+.txt')
