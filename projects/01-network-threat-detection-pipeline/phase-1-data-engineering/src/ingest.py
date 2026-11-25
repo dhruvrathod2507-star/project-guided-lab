@@ -32,49 +32,36 @@ COLUMN_NAMES = [
 
 
 def load_data(filepath):
-    """
-    Load raw NSL-KDD data from a text file.
+    """Load raw NSL-KDD data from a text file (no header row)."""
+    if not os.path.exists(filepath):
+        raise FileNotFoundError(f"File not found: {filepath}")
 
-    The NSL-KDD files are comma-separated with NO header row.
-    You need to:
-    1. Check if the file exists — raise FileNotFoundError if not
-    2. Use pd.read_csv() with header=None and names=COLUMN_NAMES
-    3. Print the shape of the loaded data
-    4. Return the DataFrame
+    df = pd.read_csv(filepath, header=None, names=COLUMN_NAMES)
 
-    Args:
-        filepath (str): Path to the raw data file (e.g., 'data/raw/KDDTrain+.txt')
-
-    Returns:
-        pd.DataFrame: Loaded raw data
-    """
-    # TODO: Implement this function
-    # Your code here
-    pass
+    print(f"    Loaded {os.path.basename(filepath)}: {df.shape[0]} rows, {df.shape[1]} columns")
+    print(f"    Columns: {list(df.columns)}")
+    return df
 
 
 def validate_data(df, expected_columns=43):
-    """
-    Run basic validation checks on the loaded data.
+    """Run basic validation checks on the loaded data."""
+    passed = True
 
-    Checks to implement:
-    1. Verify the DataFrame is not empty
-    2. Verify the number of columns matches expected_columns
-    3. Print data types summary
-    4. Print first 5 rows
-    5. Return True if all checks pass, False otherwise
+    if df.empty:
+        print("    CHECK FAILED: DataFrame is empty")
+        passed = False
 
-    Args:
-        df (pd.DataFrame): The loaded DataFrame
-        expected_columns (int): Expected number of columns
+    if df.shape[1] != expected_columns:
+        print(f"    CHECK FAILED: expected {expected_columns} columns, got {df.shape[1]}")
+        passed = False
 
-    Returns:
-        bool: True if validation passes
-    """
-    # TODO: Implement this function
-    # Your code here
-    pass
+    print("    Data types summary:")
+    print(df.dtypes.value_counts().to_string())
 
+    print("    First 5 rows:")
+    print(df.head())
+
+    return passed
 
 if __name__ == '__main__':
     print("=" * 60)
